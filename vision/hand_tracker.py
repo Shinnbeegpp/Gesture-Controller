@@ -2,6 +2,7 @@ import cv2
 import mediapipe as mp
 import math
 import pyautogui
+import time
 from actions.controller import toggle_play_pause    
 
 
@@ -18,7 +19,10 @@ def test_webcam_and_tracking():
     mp_drawing = mp.solutions.drawing_utils
     cap = cv2.VideoCapture(0)
 
-    is_pinched = False
+
+    is_music_playing = True
+    last_action_time = 0
+    cooldown_seconds = 1.5
     pinch_threshold = 0.05
 
     print('Starting Vision Engine... Press Q in the Video window to quit.')
@@ -48,13 +52,34 @@ def test_webcam_and_tracking():
 
                 distance = math.hypot(index_x - thumb_x, index_y - thumb_y)
 
-                if distance < pinch_threshold and not is_pinched:
-                    print("PINCH TRIGGERED! Toggling PLay/Pause...")
-                    toggle_play_pause()
-                    is_pinched = True
-                elif distance > pinch_threshold and is_pinched:
-                    print("Pinch release. Ready for next command")
-                    is_pinched = False
+                fingers_folded = [
+                    hand_landmarks.landmark[8].y > hand_landmarks.landmark[6].y,
+                    hand_landmarks.landmark[12].y > hand_landmarks.landmark[10].y,
+                    hand_landmarks.landmark[16].y > hand_landmarks.landmark[14].y,
+                    hand_landmarks.landmark[20].y > hand_landmarks.landmark[18].y
+                ]
+
+                is_fist = all(fingers_folded)
+                is_palm = not any(fingers_folded)
+
+                current_time = time.time()
+
+
+                if is_fist and is_music_playing:
+                    if (current_time - last_action_time) > cooldown_seconds:
+                        print("FIST DETECTED: Pausing Music...")
+                        toggle_play_pause()
+                        is_music_playing = False
+                        last_action_time = current_time
+                elif is_palm and not is_music_playing:
+                    if (current_time - last_action_time) > cooldown_seconds:
+                        print("PALM DETECTED: Playing Music...")
+                        toggle_play_pause()
+                        is_music_playing = True
+                        last_action_time = current_time
+
+                elif distance < pinch_threshold:
+                    pass
 
 
         frame = cv2.flip(frame, 1)
