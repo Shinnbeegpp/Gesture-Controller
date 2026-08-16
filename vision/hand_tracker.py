@@ -103,19 +103,17 @@ def test_webcam_and_tracking():
 
 
         frame = cv2.flip(frame, 1)
+        cv2.waitKey(10)
 
-        cv2.imshow("Vision Engine Test", frame)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
 
     cap.release()
     cv2.destroyAllWindows()
 
 
 
-test_webcam_and_tracking()
-
+if __name__ == "__main__":
+    test_webcam_and_tracking()
 
 
 
