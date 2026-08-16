@@ -3,7 +3,7 @@ import mediapipe as mp
 import math
 import pyautogui
 import time
-from actions.controller import toggle_play_pause    
+from actions.controller import toggle_play_pause, volume_up, volume_down    
 
 
 def test_webcam_and_tracking():
@@ -24,6 +24,10 @@ def test_webcam_and_tracking():
     last_action_time = 0
     cooldown_seconds = 1.5
     pinch_threshold = 0.05
+
+    is_pinched = False
+    reference_y = 0
+    volume_sensitivity = 0.00001
 
     print('Starting Vision Engine... Press Q in the Video window to quit.')
 
@@ -79,7 +83,23 @@ def test_webcam_and_tracking():
                         last_action_time = current_time
 
                 elif distance < pinch_threshold:
-                    pass
+                    if not is_pinched:
+                        is_pinched = True
+                        reference_y = index_y
+                        print("JOYSTICK: pinch detected")
+                    else: 
+                        if index_y < (reference_y - volume_sensitivity):
+                            volume_up()
+                            reference_y = index_y
+
+                        elif index_y > (reference_y + volume_sensitivity):
+                            volume_down()
+                            reference_y = index_y
+                else:
+                    if is_pinched:
+                        print("Joystick pinch release")
+                    is_pinched = False
+        
 
 
         frame = cv2.flip(frame, 1)
