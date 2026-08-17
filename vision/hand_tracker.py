@@ -3,7 +3,7 @@ import mediapipe as mp
 import math
 import pyautogui
 import time
-from actions.controller import toggle_play_pause, volume_up, volume_down    
+from actions.controller import toggle_play_pause, volume_up, volume_down, next_track, previous_track   
 
 
 def test_webcam_and_tracking():
@@ -28,6 +28,11 @@ def test_webcam_and_tracking():
     is_pinched = False
     reference_y = 0
     volume_sensitivity = 0.00001
+
+    is_pointing = False
+    swipe_anchor_x = 0
+    swipe_sensitivity = 0.040
+
 
     print('Starting Vision Engine... Press Q in the Video window to quit.')
 
@@ -66,6 +71,8 @@ def test_webcam_and_tracking():
                 is_fist = all(fingers_folded)
                 is_palm = not any(fingers_folded)
 
+                is_index_pointing = (not fingers_folded[0]) and all(fingers_folded[1:])
+
                 current_time = time.time()
 
 
@@ -95,15 +102,45 @@ def test_webcam_and_tracking():
                         elif index_y > (reference_y + volume_sensitivity):
                             volume_down()
                             reference_y = index_y
+                elif is_index_pointing:
+                    if not is_pointing:
+                        is_pointing = True
+                        swipe_anchor_x = index_x
+                        print("\nSWIPE: Point locked. Swipe left or right...")
+                    else:
+                        if index_x < (swipe_anchor_x - swipe_sensitivity):
+                            if (current_time - last_action_time) > cooldown_seconds:
+                                next_track()
+                                swipe_anchor_x = index_x 
+                                last_action_time = current_time
+
+                        elif index_x > (swipe_anchor_x + swipe_sensitivity):
+                            if (current_time - last_action_time) > cooldown_seconds:
+                                previous_track()
+                                swipe_anchor_x = index_x 
+                                last_action_time = current_time
+                            
+
+
                 else:
                     if is_pinched:
                         print("Joystick pinch release")
                     is_pinched = False
+
+                    if is_pointing:
+                        print("\nSWIPE: Point released.")
+                    is_pointing = False
         
 
 
         frame = cv2.flip(frame, 1)
         cv2.waitKey(10)
+
+        '''
+        cv2.imshow("Vision Engine Test", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break 
+        '''
 
 
 

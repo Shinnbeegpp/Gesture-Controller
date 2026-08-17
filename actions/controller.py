@@ -13,4 +13,12 @@ def volume_down():
     print("ACTION: Volume Down")
     pyautogui.press('volumedown')
 
+def next_track():
+    print("ACTION: Next Track")
+    pyautogui.press('nexttrack')
+
+def previous_track():
+    print("ACTION: Previous Track")
+    pyautogui.press('prevtrack')
+
 
