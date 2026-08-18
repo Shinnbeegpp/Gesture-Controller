@@ -1,0 +1,6 @@
+{
+  "cooldown_seconds": 1.5,
+  "pinch_threshold": 0.05,
+  "volume_sensitivity": 0.03,
+  "swipe_sensitivity": 0.15
+}
